@@ -1,7 +1,8 @@
 /**
  * Theme provider — syncs with Privos host theme or allows manual override.
- * Modes: 'auto' (follow host), 'light', 'dark'.
+ * Modes: 'auto' (follow host dark/light), 'light', 'dark'.
  * Sets data-theme attribute on <html> for CSS targeting.
+ * Background colors are defined in CSS per theme — no inline overrides.
  */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
@@ -29,11 +30,9 @@ interface ThemeProviderProps {
   children: ReactNode;
   /** Host theme from Privos (via usePrivosContext().theme) */
   hostTheme: string;
-  /** Exact room background color from host (via usePrivosContext().surfaceColor) */
-  surfaceColor?: string;
 }
 
-export function ThemeProvider({ children, hostTheme, surfaceColor }: ThemeProviderProps) {
+export function ThemeProvider({ children, hostTheme }: ThemeProviderProps) {
   const [mode, setModeState] = useState<ThemeMode>(() => {
     try { return (localStorage.getItem('theme-mode') as ThemeMode) || 'auto'; }
     catch { return 'auto'; }
@@ -51,11 +50,7 @@ export function ThemeProvider({ children, hostTheme, surfaceColor }: ThemeProvid
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', resolved);
-    // Apply surfaceColor as --bg so app matches host exactly
-    if (surfaceColor) {
-      document.documentElement.style.setProperty('--bg', surfaceColor);
-    }
-  }, [resolved, surfaceColor]);
+  }, [resolved]);
 
   return (
     <ThemeContext.Provider value={{ mode, resolved, setMode }}>
