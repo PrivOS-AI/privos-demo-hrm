@@ -65,7 +65,7 @@ npm run dev
 curl -X POST -H "Content-Type: application/json" \
   -H "X-Auth-Token: $TOKEN" -H "X-User-Id: $UID" \
   -d '{"serverUrl": "https://your-app-url.example.com"}' \
-  http://localhost:3000/api/v1/mini-apps.connect
+  http://localhost:3000/api/v1/mcp-apps.connect
 ```
 
 ## MCP Tools Used

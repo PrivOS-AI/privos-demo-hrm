@@ -1,11 +1,33 @@
 {
-  "name": "privos-demo-hrm",
+  "name": "ai.privos.demo-hr-management",
   "version": "1.0.0",
   "private": true,
+  "description": "HR management demo — add employees and view records",
+  "title": "Demo HR Management",
+  "icon": "/public/icon.svg",
+  "homepage": "https://privos.ai",
   "author": {
     "name": "T.D",
     "email": "t.d@privos.ai",
     "url": "https://t.d"
+  },
+  "license": "MIT",
+  "keywords": [
+    "hr",
+    "management",
+    "mcp",
+    "demo",
+    "privos"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/privos/demo-hrm"
+  },
+  "bugs": {
+    "url": "https://github.com/privos/demo-hrm/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",

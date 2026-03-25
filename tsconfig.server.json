@@ -3,8 +3,11 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "outDir": "dist/server",
     "noEmit": false
   },
-  "include": ["src/server.ts"]
+  "include": [
+    "src/server.ts"
+  ]
 }

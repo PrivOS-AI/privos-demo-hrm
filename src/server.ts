@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import path from 'path';
+import _pkg from '../package.json';
+const pkg = _pkg as Record<string, any>;
 
 const app = express();
 app.use(express.json());
@@ -11,17 +13,17 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 // MCP manifest
 app.get('/.well-known/mcp/manifest.json', (_req, res) => {
   res.json({
-    name: 'ai.privos.demo-hr-management',
-    version: '1.0.0',
-    title: 'Demo HR Management',
-    description: 'HR management demo — add employees and view records',
-    icon: '/public/icon.svg',
+    name: pkg.name,
+    version: pkg.version,
+    title: pkg.title,
+    description: pkg.description,
+    icon: pkg.icon,
     author: {
-      name: 'T.D',
-      email: 't.d@privos.ai',
-      website: 'https://t.d',
+      name: pkg.author?.name,
+      email: pkg.author?.email,
+      website: pkg.author?.url,
     },
-    homepage: PUBLIC_URL,
+    homepage: pkg.homepage || PUBLIC_URL,
   });
 });
 
