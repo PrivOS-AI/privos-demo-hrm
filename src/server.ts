@@ -7,6 +7,15 @@ const pkg = _pkg as Record<string, any>;
 const app = express();
 app.use(express.json());
 
+// Allow cross-origin requests (app UI loads in Privos iframe)
+app.use((_req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (_req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 // Serve static files (icon, etc.)
 app.use('/public', express.static(path.join(__dirname, '../public')));
 

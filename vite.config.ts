@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [react()],
   root: 'src/ui',
   base: '/ui/',
+  server: {
+    cors: true,
+  },
   build: {
     outDir: '../../dist/ui',
     emptyOutDir: true,
