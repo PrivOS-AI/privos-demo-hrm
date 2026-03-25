@@ -31,13 +31,13 @@
 
 /* Dark theme — surfaceColor from host overrides --bg for exact room background match */
 [data-theme="dark"] {
-  --bg: #1F2329;
-  --bg-card: #262931;
-  --bg-hover: #2F343D;
-  --bg-input: #353B45;
-  --bg-table-head: #2F343D;
-  --bg-editing: #2C3038;
-  --bg-field-panel: #1F2329;
+  --bg: #080d0f;
+  --bg-card: #131a1e;
+  --bg-hover: #1a2228;
+  --bg-input: #1a2228;
+  --bg-table-head: #131a1e;
+  --bg-editing: #131a1e;
+  --bg-field-panel: #080d0f;
   --text: #E4E7EA;
   --text-secondary: #9EA2A8;
   --text-muted: #9EA2A8;
