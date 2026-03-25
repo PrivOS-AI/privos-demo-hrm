@@ -1,57 +1,57 @@
 /* Demo HR Management — theme-aware styles */
 
-/* Light theme (default) — uses Privos --rcx-color-* when inside iframe, falls back to hardcoded */
+/* Light theme (default)
+ * --rcx-color-* vars don't resolve inside sandboxed iframe — use hardcoded values.
+ * surfaceColor from HOST_CONTEXT_CHANGED overrides --bg at runtime for exact match.
+ */
 :root, [data-theme="light"] {
-  --bg: var(--rcx-color-surface-room, #F7F8FA);
-  --bg-card: var(--rcx-color-surface-light, #FFFFFF);
-  --bg-hover: var(--rcx-color-surface-hover, #F2F3F5);
-  --bg-input: var(--rcx-color-surface-light, #FFFFFF);
-  --bg-table-head: var(--rcx-color-surface-tint, #F7F8FA);
+  --bg: #F7F8FA;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F2F3F5;
+  --bg-input: #FFFFFF;
+  --bg-table-head: #F7F8FA;
   --bg-editing: #FFFEF0;
-  --bg-field-panel: var(--rcx-color-surface-room, #F7F8FA);
-  --text: var(--rcx-color-font-titles-labels, #1F2329);
-  --text-secondary: var(--rcx-color-font-default, #2F343D);
-  --text-muted: var(--rcx-color-font-hint, #6C737A);
-  --text-faint: var(--rcx-color-font-disabled, #9EA2A8);
-  --border: var(--rcx-color-stroke-light, #E4E7EA);
-  --border-light: var(--rcx-color-stroke-extra-light, #EBECEF);
-  --accent: var(--rcx-color-button-background-primary-default, #156FF5);
-  --accent-hover: var(--rcx-color-button-background-primary-hover, #095AD2);
-  --success-bg: var(--rcx-color-status-background-success, #C1EBDD);
-  --success-text: var(--rcx-color-status-font-on-success, #148660);
-  --error-bg: var(--rcx-color-status-background-danger, #FFE9EC);
-  --error-text: var(--rcx-color-font-danger, #EC0D2A);
-  --danger: var(--rcx-color-button-background-danger-default, #EC0D2A);
-  --danger-hover: var(--rcx-color-button-background-danger-hover, #D40C26);
+  --bg-field-panel: #F7F8FA;
+  --text: #1F2329;
+  --text-secondary: #2F343D;
+  --text-muted: #6C737A;
+  --text-faint: #9EA2A8;
+  --border: #E4E7EA;
+  --border-light: #EBECEF;
+  --accent: #156FF5;
+  --accent-hover: #095AD2;
+  --success-bg: #C1EBDD;
+  --success-text: #148660;
+  --error-bg: #FFE9EC;
+  --error-text: #EC0D2A;
+  --danger: #EC0D2A;
+  --danger-hover: #D40C26;
   --overlay: rgba(0, 0, 0, 0.4);
 }
 
-/* Dark theme — matches Privos/Rocket.Chat fuselage dark palette
- * Uses --rcx-color-* variables when inside Privos iframe, falls back to hardcoded equivalents.
- * Neutral scale: n100=#F7F8FA inverted to n100=#1F2329 (darkest→lightest in dark mode)
- */
+/* Dark theme — surfaceColor from host overrides --bg for exact room background match */
 [data-theme="dark"] {
-  --bg: var(--rcx-color-surface-room, #080d0f);
-  --bg-card: var(--rcx-color-surface-light, #262931);
-  --bg-hover: var(--rcx-color-surface-hover, #2F343D);
-  --bg-input: var(--rcx-color-surface-neutral, #353B45);
-  --bg-table-head: var(--rcx-color-surface-tint, #2F343D);
+  --bg: #1F2329;
+  --bg-card: #262931;
+  --bg-hover: #2F343D;
+  --bg-input: #353B45;
+  --bg-table-head: #2F343D;
   --bg-editing: #2C3038;
-  --bg-field-panel: var(--rcx-color-surface-room, #1F2329);
-  --text: var(--rcx-color-font-default, #E4E7EA);
-  --text-secondary: var(--rcx-color-font-hint, #9EA2A8);
-  --text-muted: var(--rcx-color-font-annotation, #9EA2A8);
-  --text-faint: var(--rcx-color-font-disabled, #6C737A);
-  --border: var(--rcx-color-stroke-light, #353B45);
-  --border-light: var(--rcx-color-stroke-extra-light, #2F343D);
-  --accent: var(--rcx-color-button-background-primary-default, #095AD2);
-  --accent-hover: var(--rcx-color-button-background-primary-hover, #10529E);
-  --success-bg: var(--rcx-color-status-background-success, #1A3A2A);
-  --success-text: var(--rcx-color-status-font-on-success, #58AD90);
-  --error-bg: var(--rcx-color-status-background-danger, #3A1A1A);
-  --error-text: var(--rcx-color-font-danger, #D88892);
-  --danger: var(--rcx-color-button-background-danger-default, #BB0B21);
-  --danger-hover: var(--rcx-color-button-background-danger-hover, #D40C26);
+  --bg-field-panel: #1F2329;
+  --text: #E4E7EA;
+  --text-secondary: #9EA2A8;
+  --text-muted: #9EA2A8;
+  --text-faint: #6C737A;
+  --border: #353B45;
+  --border-light: #2F343D;
+  --accent: #095AD2;
+  --accent-hover: #10529E;
+  --success-bg: #1A3A2A;
+  --success-text: #58AD90;
+  --error-bg: #3A1A1A;
+  --error-text: #D88892;
+  --danger: #BB0B21;
+  --danger-hover: #D40C26;
   --overlay: rgba(0, 0, 0, 0.6);
 }
 
