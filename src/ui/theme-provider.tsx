@@ -51,14 +51,11 @@ export function ThemeProvider({ children, hostTheme, surfaceColor }: ThemeProvid
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', resolved);
-    // Only apply surfaceColor in auto mode (following host) — clear it otherwise
-    // so CSS [data-theme] rules take precedence
-    if (surfaceColor && mode === 'auto') {
+    // Apply surfaceColor as --bg so app matches host exactly
+    if (surfaceColor) {
       document.documentElement.style.setProperty('--bg', surfaceColor);
-    } else {
-      document.documentElement.style.removeProperty('--bg');
     }
-  }, [resolved, surfaceColor, mode]);
+  }, [resolved, surfaceColor]);
 
   return (
     <ThemeContext.Provider value={{ mode, resolved, setMode }}>
