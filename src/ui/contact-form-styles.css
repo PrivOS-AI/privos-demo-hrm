@@ -31,7 +31,7 @@
  * Neutral scale: n100=#F7F8FA inverted to n100=#1F2329 (darkest→lightest in dark mode)
  */
 [data-theme="dark"] {
-  --bg: var(--rcx-color-surface-room, #1F2329);
+  --bg: var(--rcx-color-surface-room, #080d0f);
   --bg-card: var(--rcx-color-surface-light, #262931);
   --bg-hover: var(--rcx-color-surface-hover, #2F343D);
   --bg-input: var(--rcx-color-surface-neutral, #353B45);
