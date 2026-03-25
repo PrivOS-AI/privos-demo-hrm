@@ -3,7 +3,7 @@
 Demo Privos MCP app that manages employee records with dynamic fields.
 
 **Author:** T.D (t.d@privos.ai)
-**URL:** https://thanh-10002.roxane.one (port 10002)
+**Port:** 10002
 
 ## What It Is
 
@@ -43,7 +43,7 @@ src/
 `.env`:
 ```
 PORT=10002
-PUBLIC_URL=https://thanh-10002.roxane.one
+PUBLIC_URL=https://your-tunnel-url.example.com
 ```
 
 ## Run
@@ -58,13 +58,13 @@ npm run dev
 ### Admin Portal
 1. Navigate to **Admin → Apps**
 2. Click **Connect App**
-3. Enter server URL: `https://thanh-10002.roxane.one`
+3. Enter server URL: `https://your-app-url.example.com`
 
 ### Via API
 ```bash
 curl -X POST -H "Content-Type: application/json" \
   -H "X-Auth-Token: $TOKEN" -H "X-User-Id: $UID" \
-  -d '{"serverUrl": "https://thanh-10002.roxane.one"}' \
+  -d '{"serverUrl": "https://your-app-url.example.com"}' \
   http://localhost:3000/api/v1/mini-apps.connect
 ```
 
