@@ -86,6 +86,34 @@ curl -X POST -H "Content-Type: application/json" \
 
 ## Theme Support
 
-- **Auto** — follows Privos host theme in real-time via `HOST_CONTEXT_CHANGED`
-- **Light/Dark** — manual override, persisted to localStorage
-- CSS variables map to Privos `--rcx-color-*` tokens with hardcoded fallbacks
+Three modes via toggle in top-right corner:
+
+| Mode | Behavior |
+|------|----------|
+| **Auto** | Follows Privos host theme in real-time via `HOST_CONTEXT_CHANGED` |
+| **Light** | Forces light theme |
+| **Dark** | Forces dark theme |
+
+Mode persisted to `localStorage`. Toggle in `theme-provider.tsx`.
+
+### How It Works
+
+1. Privos pushes `{ method: 'HOST_CONTEXT_CHANGED', params: { theme: 'light' | 'dark' } }` to iframe
+2. `usePrivosContext().theme` updates → `ThemeProvider` resolves mode → sets `data-theme` on `<html>`
+3. CSS variables switch between light/dark palettes
+
+### CSS Variables & Privos Token Mapping
+
+All styles use CSS variables that inherit from Privos `--rcx-color-*` inside iframe, with fallbacks for standalone:
+
+| Variable | Privos Token | Light | Dark |
+|----------|-------------|-------|------|
+| `--bg` | `surface-room` | #F7F8FA | #1F2329 |
+| `--bg-card` | `surface-light` | #FFFFFF | #262931 |
+| `--bg-hover` | `surface-hover` | #F2F3F5 | #2F343D |
+| `--bg-input` | `surface-neutral` | #FFFFFF | #353B45 |
+| `--text` | `font-titles-labels` | #1F2329 | #E4E7EA |
+| `--text-muted` | `font-hint` | #6C737A | #9EA2A8 |
+| `--border` | `stroke-light` | #E4E7EA | #353B45 |
+| `--accent` | `button-background-primary-default` | #156FF5 | #095AD2 |
+| `--danger` | `button-background-danger-default` | #EC0D2A | #BB0B21 |
