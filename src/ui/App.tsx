@@ -3,9 +3,9 @@ import { ThemeProvider, ThemeToggle } from './theme-provider';
 import HRManagementDashboard from './contact-collector-form';
 
 function ThemedApp() {
-  const { theme } = usePrivosContext();
+  const ctx = usePrivosContext();
   return (
-    <ThemeProvider hostTheme={theme}>
+    <ThemeProvider hostTheme={ctx.theme} surfaceColor={(ctx as any).surfaceColor}>
       <div className="app-header">
         <ThemeToggle />
       </div>

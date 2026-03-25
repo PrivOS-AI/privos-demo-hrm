@@ -29,9 +29,11 @@ interface ThemeProviderProps {
   children: ReactNode;
   /** Host theme from Privos (via usePrivosContext().theme) */
   hostTheme: string;
+  /** Exact room background color from host (via usePrivosContext().surfaceColor) */
+  surfaceColor?: string;
 }
 
-export function ThemeProvider({ children, hostTheme }: ThemeProviderProps) {
+export function ThemeProvider({ children, hostTheme, surfaceColor }: ThemeProviderProps) {
   const [mode, setModeState] = useState<ThemeMode>(() => {
     try { return (localStorage.getItem('theme-mode') as ThemeMode) || 'auto'; }
     catch { return 'auto'; }
@@ -49,7 +51,11 @@ export function ThemeProvider({ children, hostTheme }: ThemeProviderProps) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', resolved);
-  }, [resolved]);
+    // Apply exact host background color if provided
+    if (surfaceColor) {
+      document.documentElement.style.setProperty('--bg', surfaceColor);
+    }
+  }, [resolved, surfaceColor]);
 
   return (
     <ThemeContext.Provider value={{ mode, resolved, setMode }}>
