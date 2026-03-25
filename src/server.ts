@@ -93,6 +93,7 @@ app.post('/mcp', (req, res) => {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Demo HR Management</title>
+  <style>html,body{margin:0;background:#F7F8FA;color:#1F2329}</style>
 </head>
 <body>
   <div id="root"></div>
