@@ -3,8 +3,9 @@
  * Dynamically renders fields based on the selected list's fieldDefinitions.
  */
 import { useState, useEffect, useCallback } from 'react';
-import { usePrivosApp, usePrivosContext, useLists } from '@privos/app-react';
+import { usePrivosApp, usePrivosContext } from '@privos/app-react';
 import ListItemsTable from './list-items-table';
+import { restCall } from './privos-rest';
 
 interface FieldDefinition {
   _id: string;
@@ -19,6 +20,11 @@ interface ListData {
   fieldDefinitions?: FieldDefinition[];
 }
 
+interface StageData {
+  _id: string;
+  name?: string;
+}
+
 const FIELD_TYPES = [
   { value: 'TEXT', label: 'Text' },
   { value: 'TEXTAREA', label: 'Text Area' },
@@ -27,15 +33,41 @@ const FIELD_TYPES = [
   { value: 'CHECKBOX', label: 'Checkbox' },
   { value: 'URL', label: 'URL' },
   { value: 'SELECT', label: 'Dropdown' },
+  { value: 'FILE', label: 'File' },
 ];
+
+// Sample custom fields seeded into every new list. The item's built-in `name`
+// covers "name", so these are the extra columns (phone/email/document/file).
+const SAMPLE_LIST_FIELDS = [
+  { name: 'Phone', type: 'TEXT' },
+  { name: 'Email', type: 'TEXT' },
+  { name: 'Document', type: 'DOCUMENT' },
+  { name: 'File', type: 'FILE' },
+];
+
+/** Read a File into a base64 data URI for the upload bridge. */
+function readAsDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function HRManagementDashboard() {
   const app = usePrivosApp();
   const { roomId } = usePrivosContext();
-  const { data: lists, loading: listsLoading, error: listsError } = useLists(roomId);
+
+  // Lists in the room — fetched via the hub REST API (GET lists.listByRoomId),
+  // gated by the app's `lists:read` scope. Runs as the current user.
+  const [lists, setLists] = useState<ListData[]>([]);
+  const [listsLoading, setListsLoading] = useState(true);
+  const [listsError, setListsError] = useState<Error | null>(null);
 
   const [selectedListId, setSelectedListId] = useState('');
   const [selectedList, setSelectedList] = useState<ListData | null>(null);
+  const [stages, setStages] = useState<StageData[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [itemName, setItemName] = useState('');
   const [fieldValues, setFieldValues] = useState<Record<string, any>>({});
@@ -53,25 +85,45 @@ export default function HRManagementDashboard() {
   // Show/hide the add form
   const [showForm, setShowForm] = useState(false);
 
+  // Create-list state
+  const [showCreateList, setShowCreateList] = useState(false);
+  const [newListName, setNewListName] = useState('');
+  const [creatingList, setCreatingList] = useState(false);
+  const [createListError, setCreateListError] = useState<string | null>(null);
+
+  // Load lists for the room once we know the roomId.
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+    setListsLoading(true);
+    setListsError(null);
+    restCall<{ lists: ListData[] }>(app, 'GET', 'lists.listByRoomId', { query: { roomId } })
+      .then((body) => { if (!cancelled) setLists(Array.isArray(body.lists) ? body.lists : []); })
+      .catch((err) => { if (!cancelled) setListsError(err instanceof Error ? err : new Error(String(err))); })
+      .finally(() => { if (!cancelled) setListsLoading(false); });
+    return () => { cancelled = true; };
+  }, [app, roomId]);
+
   const fetchListDetails = useCallback(async (listId: string) => {
     if (!listId) {
       setSelectedList(null);
+      setStages([]);
       setFieldValues({});
       return;
     }
     setLoadingList(true);
     try {
-      const result = await app.callServerTool({
-        name: 'privos.lists.get',
-        arguments: { listId },
-      });
-      const parsed = typeof result?.content?.[0]?.text === 'string'
-        ? JSON.parse(result.content[0].text)
-        : result;
-      setSelectedList(parsed);
+      // GET lists.info returns { list, stages, itemCount }. The list carries its
+      // fieldDefinitions; stages are needed because items.create requires a stageId.
+      const body = await restCall<{ list: ListData; stages: StageData[] }>(
+        app, 'GET', 'lists.info', { query: { listId } },
+      );
+      setSelectedList(body.list);
+      setStages(Array.isArray(body.stages) ? body.stages : []);
       setFieldValues({});
     } catch {
       setSelectedList(null);
+      setStages([]);
     } finally {
       setLoadingList(false);
     }
@@ -87,17 +139,41 @@ export default function HRManagementDashboard() {
     setFieldValues((prev) => ({ ...prev, [fieldId]: value }));
   }
 
+  async function handleCreateList() {
+    const name = newListName.trim();
+    if (!name || !roomId) return;
+    setCreatingList(true);
+    setCreateListError(null);
+    try {
+      // POST lists.create seeds the list with the sample fields in one call and
+      // returns { list, defaultStage }. Needs lists:write + room owner/admin.
+      const body = await restCall<{ list: ListData }>(
+        app, 'POST', 'lists.create',
+        { body: { name, roomId, fieldDefinitions: SAMPLE_LIST_FIELDS } },
+      );
+      const created = body.list;
+      setLists((prev) => [...prev, created]);
+      setSelectedListId(created._id);
+      setShowCreateList(false);
+      setNewListName('');
+    } catch (err: any) {
+      setCreateListError(err?.message || 'Failed to create list.');
+    } finally {
+      setCreatingList(false);
+    }
+  }
+
   async function handleAddField() {
     if (!newFieldName.trim() || !selectedListId) return;
     setAddingField(true);
     setError(null);
     try {
-      const result = await app.callServerTool({
-        name: 'privos.lists.addField',
-        arguments: { listId: selectedListId, name: newFieldName.trim(), type: newFieldType },
-      });
-      const newField = typeof result?.content?.[0]?.text === 'string'
-        ? JSON.parse(result.content[0].text) : result;
+      // POST lists.fields.create returns { list, field }.
+      const body = await restCall<{ field: FieldDefinition }>(
+        app, 'POST', 'lists.fields.create',
+        { body: { listId: selectedListId, name: newFieldName.trim(), type: newFieldType } },
+      );
+      const newField = body.field;
       setSelectedList((prev) => prev ? {
         ...prev,
         fieldDefinitions: [...(prev.fieldDefinitions || []), newField],
@@ -118,15 +194,50 @@ export default function HRManagementDashboard() {
     if (!itemName.trim()) { setError('Name is required.'); return; }
     if (!selectedListId) { setError('Please select a list.'); return; }
 
-    const customFields = Object.entries(fieldValues)
-      .filter(([, v]) => v !== '' && v !== null && v !== undefined)
-      .map(([fieldId, value]) => ({ fieldId, value }));
+    // items.create requires a stageId — default to the list's first stage.
+    const stageId = stages[0]?._id;
+    if (!stageId) { setError('This list has no stages to add records to.'); return; }
 
     setSubmitting(true);
     try {
-      await app.callServerTool({
-        name: 'privos.lists.createItem',
-        arguments: { listId: selectedListId, title: itemName, customFields },
+      // Build custom fields. FILE fields hold a selected File — upload it to the room
+      // first (files:write), then store the hub's canonical FILE value: an array of
+      // { _id, name } file refs (the UI resolves the download URL from _id).
+      const entries = Object.entries(fieldValues).filter(([, v]) => v !== '' && v !== null && v !== undefined);
+      const customFields: { fieldId: string; value: any }[] = [];
+      for (const [fieldId, value] of entries) {
+        if (value instanceof File) {
+          const up = await app.uploadFile({
+            channelId: roomId,
+            fileName: value.name,
+            base64Data: await readAsDataUri(value),
+            mimeType: value.type || 'application/octet-stream',
+          });
+          const fid = up?.file?._id;
+          if (!fid) throw new Error('Upload did not return a file id.');
+          const mimeType = value.type || up?.file?.file_type || 'application/octet-stream';
+          // Single-file refs carry _id + display metadata; the hub viewer resolves
+          // the download by _id. A SINGLE `FILE` field stores one object; the
+          // multi/document fields store an array (matching the hub's own shape).
+          const ref = {
+            _id: fid,
+            name: up?.file?.name || value.name,
+            type: mimeType,
+            size: value.size,
+            file_type: mimeType,
+            file_size: value.size,
+          };
+          const fieldDef = (selectedList?.fieldDefinitions || []).find((f) => f._id === fieldId);
+          const isMulti = fieldDef?.type === 'FILE_MULTIPLE' || fieldDef?.type === 'DOCUMENT';
+          customFields.push({ fieldId, value: isMulti ? [ref] : ref });
+        } else {
+          customFields.push({ fieldId, value });
+        }
+      }
+
+      // POST items.create — note the hub field is `name` (not `title`).
+      await restCall(app, 'POST', 'items.create', {
+        body: { listId: selectedListId, name: itemName, stageId, customFields },
       });
       setSuccess(true);
       setRefreshKey((k) => k + 1);
@@ -158,19 +269,57 @@ export default function HRManagementDashboard() {
     <div className="container">
       <h1>Demo HR Management</h1>
 
-      {/* List selector */}
+      {/* List selector + create */}
       <div className="form-group">
         <label htmlFor="list-select">Select List</label>
-        <select
-          id="list-select"
-          value={selectedListId}
-          onChange={(e) => setSelectedListId(e.target.value)}
-        >
-          <option value="">-- Select a list --</option>
-          {availableLists.map((list) => (
-            <option key={list._id} value={list._id}>{list.name}</option>
-          ))}
-        </select>
+        <div className="list-select-row">
+          <select
+            id="list-select"
+            value={selectedListId}
+            onChange={(e) => setSelectedListId(e.target.value)}
+          >
+            <option value="">-- Select a list --</option>
+            {availableLists.map((list) => (
+              <option key={list._id} value={list._id}>{list.name}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="btn-new-list"
+            onClick={() => { setShowCreateList((v) => !v); setCreateListError(null); }}
+          >
+            + New List
+          </button>
+        </div>
+
+        {showCreateList && (
+          <div className="add-field-panel">
+            <div className="add-field-row">
+              <input
+                type="text"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                placeholder="New list name"
+                className="add-field-name"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleCreateList(); }}
+              />
+            </div>
+            <p className="loading-text" style={{ margin: '4px 0' }}>
+              Seeds fields: Name, Phone, Email, Document, File
+            </p>
+            {createListError && <div className="error-message">{createListError}</div>}
+            <div className="add-field-actions">
+              <button type="button" className="btn-confirm-field"
+                onClick={handleCreateList} disabled={creatingList || !newListName.trim()}>
+                {creatingList ? 'Creating...' : 'Create'}
+              </button>
+              <button type="button" className="btn-cancel-field"
+                onClick={() => { setShowCreateList(false); setNewListName(''); setCreateListError(null); }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {loadingList && <p className="loading-text">Loading...</p>}
@@ -308,6 +457,16 @@ function renderFieldInput(
       return <input id={id} type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} style={{ width: 'auto' }} />;
     case 'URL':
       return <input id={id} type="url" value={value} onChange={(e) => onChange(e.target.value)} placeholder="https://..." />;
+    case 'FILE':
+    case 'FILE_MULTIPLE':
+    case 'DOCUMENT':
+      // Store the File object; the form uploads it on submit and saves a { _id, name } ref.
+      return (
+        <div>
+          <input id={id} type="file" onChange={(e) => onChange(e.target.files?.[0] || null)} />
+          {value instanceof File && <span className="file-size" style={{ marginInlineStart: 8 }}>{value.name}</span>}
+        </div>
+      );
     case 'SELECT':
       return (
         <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>

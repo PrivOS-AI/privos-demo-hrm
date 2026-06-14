@@ -33,6 +33,9 @@ app.get('/.well-known/mcp/manifest.json', (_req, res) => {
       website: pkg.author?.url,
     },
     homepage: pkg.homepage || PUBLIC_URL,
+    // Requested scopes — PrivOS records these and an admin grants the subset that
+    // gates the app's REST calls (app.rest()). See package.json `scopes`.
+    scopes: Array.isArray(pkg.scopes) ? pkg.scopes : undefined,
   });
 });
 
