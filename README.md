@@ -1,5 +1,9 @@
 # Demo HR Management
 
+> **This is a demo, not for production.** It shows how a Privos MCP app is put together and makes no
+> production-grade guarantees. Its `/mcp` endpoint does not authenticate callers; do not deploy it with
+> real employee data.
+
 Demo Privos MCP app that manages employee records with dynamic fields.
 
 **Author:** T.D (t.d@privos.ai)
